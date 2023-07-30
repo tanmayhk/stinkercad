@@ -2,16 +2,24 @@ from stl import mesh
 import numpy as np 
 import sys
 import extrusion
+import revolution
 
 f = open(sys.argv[1] + "_stl.txt", "r")
 
 fin_list = []
 for line in f.readlines():
-    if line[0] == "P" and "M" not in line:
+    if line[0] == "V" and "w_P" not in line: # revolution
+        x = line.replace("2\pi", "6.2831").replace("V", "").replace(")", "").replace("(", "")
+        x = [i.replace(" ", "").replace("\n", "") for i in x.split(",")]
+        x = [float(i) for i in x]
+        x.append(100)
+        rev_polygons = revolution.V(*x)
+        fin_list = fin_list + rev_polygons
+    elif line[0] == "P" and "M" not in line: # new facets
         x = line.replace("P", "").replace(")", "").replace("(", "").replace("\\right)", "").replace("\left(", "")
         x = [i.replace(" ", "").replace("\n", "") for i in x.split(",")]
         fin_list.append([[x[0], x[1], x[2]], [x[3], x[4], x[5]], [x[6], x[7], x[8]]])
-    if line[0:5] == "e_{x}" and "M" not in line:
+    elif line[0:5] == "e_{x}" and "M" not in line: # extrusion
         x = line.replace("e_{x}", "").replace(")", "").replace("(", "").replace("\\right)", "").replace("\left(", "")
         x = [i.replace("\n", "") for i in x.split(",")]
         x = [float(i) for i in x]
